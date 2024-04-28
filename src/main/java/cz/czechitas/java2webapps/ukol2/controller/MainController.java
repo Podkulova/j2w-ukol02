@@ -15,20 +15,37 @@ import java.util.stream.Collectors;
 
 @Controller
 public class MainController {
+    private final Random random = new Random();
 
-    public static List<String> readAllLines(String resource) throws IOException {
-        //Soubory z resources se získávají pomocí classloaderu. Nejprve musíme získat aktuální classloader.
-        ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
+    public static List<String> readAllLines(String resource)throws IOException{
 
-        //Pomocí metody getResourceAsStream() získáme z classloaderu InpuStream, který čte z příslušného souboru.
-        //Následně InputStream převedeme na BufferedRead, který čte text v kódování UTF-8
-        try (InputStream inputStream = classLoader.getResourceAsStream(resource);
-             BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8))) {
+        ClassLoader classLoader=Thread.currentThread().getContextClassLoader();
 
-            //Metoda lines() vrací stream řádků ze souboru. Pomocí kolektoru převedeme Stream<String> na List<String>.
+        try(InputStream inputStream=classLoader.getResourceAsStream(resource);
+            BufferedReader reader=new BufferedReader(new InputStreamReader(inputStream,StandardCharsets.UTF_8))){
+
             return reader
                     .lines()
                     .collect(Collectors.toList());
         }
     }
+    @GetMapping("/")
+    public ModelAndView changeLookOfPage() throws IOException {
+
+        ModelAndView result = new ModelAndView("dynamicPage");
+
+        List<String> citaty = readAllLines("citaty.txt");
+        int nahodneCisloCitatu = random.nextInt(citaty.size());
+        String nahodnyCitat = citaty.get(nahodneCisloCitatu);
+        result.addObject("quote", nahodnyCitat);
+
+        List<String> images = readAllLines("image.txt");
+        int nahodneCisloObrazku = random.nextInt(images.size());
+        String nahodnyObrazek = images.get(nahodneCisloObrazku);
+        result.addObject("image", nahodnyObrazek);
+
+        return result;
+
+    }
+
 }
